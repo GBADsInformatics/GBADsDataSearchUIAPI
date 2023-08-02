@@ -20,6 +20,9 @@ you can download the zip with the following command:
 
 place the `glove.6B.50d.txt` file in the root of this project
 
+## Running the server
+`uvicorn main:app --reload`
+
 ## Testing & Linting
 Testing and linting can be applied with the following command:
 `nox`
