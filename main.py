@@ -3,9 +3,11 @@ import csv
 import nltk
 import numpy as np
 import ProcessSearch as PS
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
+import os
 
 nltk.download("stopwords")
+nltk.download("punkt")
 
 # Load the spaCy English language model
 nlp = spacy.load("en_core_web_lg")
@@ -55,19 +57,22 @@ with open("nationality.csv", newline="", encoding="utf-8") as csvfile:
     for row in reader:
         nationality_mapping[row["nationality"].lower()] = row["en_short_name"]
 
+BASE_URL = os.environ.get("BASE_URL","")
+app = FastAPI(docs_url=BASE_URL + "/docs", openapi_url=BASE_URL + "/openapi.json")
+router = APIRouter(prefix=BASE_URL)
 
-app = FastAPI()
+@router.get("/ping", tags=['Ping'])
+def test_api_connection():
+    return "pong"
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
-
-@app.get("/items/{item_id}")
-def read_item(query: str):
+@router.get("/search", tags=['Search'])
+def perform_a_search_query(query: str):
     ner = PS.NER(
         nlp, data, categories, embeddings_index, data_embeddings, nationality_mapping
     )
     result = ner.perform_ner(query)
     return result
+
+# This router allows a custom path to be used for the API
+app.include_router(router)
