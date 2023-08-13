@@ -1,4 +1,9 @@
 # Virtual Environment
+
+### To create a virtual environment:
+`pip install virtualenv`
+`python3.9 -m venv env`
+
 ### To activate, use the following command:
 `source env/bin/activate`
 

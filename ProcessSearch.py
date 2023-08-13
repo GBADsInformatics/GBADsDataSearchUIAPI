@@ -42,81 +42,77 @@ class NER:
         tokens_without_sw = [word for word in text_tokens if word not in all_stopwords]
         return " ".join(tokens_without_sw)
 
-    def process_match_scores(self, species, category_to_check):
-        original = species
-        query_embed = self.embeddings_index[species]
-        scores = {}
-        for word, embed in self.data_embeddings.items():
-            category = self.categories[word]
-            dist = query_embed.dot(embed)
-            dist /= len(self.data[category])
-            scores[category] = scores.get(category, 0) + dist
+    # check_meaning -> Whatever word is to be checked
+    # category_to_check -> category to check against it
+    def process_match_scores(self, check_meaning, category_to_check):
+        try:
+            original = check_meaning
+            query_embed = self.embeddings_index[check_meaning]
+            scores = {}
+            for word, embed in self.data_embeddings.items():
+                category = self.categories[word]
+                dist = query_embed.dot(embed)
+                dist /= len(self.data[category])
+                scores[category] = scores.get(category, 0) + dist
 
-        highest_key = max(scores, key=scores.get)
-        if highest_key == category_to_check:
-            return original.capitalize()
-        return None
+            highest_key = max(scores, key=scores.get)
+            if highest_key == category_to_check:
+                return original.capitalize()
+            return None
+        except:
+            # Index error has occurred. This is likely due to the word not exsisting.
+            return None
 
     #     Query: Chinese bovine in 96
     # {'Names': -4.695542550086976, 'Places': 4.133115649223328, 'Colors': 1.6846088270346324, 'Species': 20.311160945892333} = species
     def extract_species(self, text):
-        species = ""
+        species_list = []
 
         doc = self.nlp(text)
-        # print(doc)
-
-        # Extract species entity using NER
         for token in doc:
-            # print(token.text, token.lemma_, token.pos_, token.tag_, token.dep_,
-            #     token.shape_, token.is_alpha, token.is_stop)
             if token.pos_ == "NOUN" or token.pos_ == "PROPN":
-                species = token.text
+                species = token.text.lower()
+                species = self.process_match_scores(species, "Species")
+                if species:
+                    species_list.append(species.capitalize())
 
-        species = species.lower()
-        species = self.process_match_scores(species, "Species")
-        return species
+        return species_list
 
     def extract_country(self, text):
-        country = ""
+        country_list = []
         newtext = text
-
         doc = self.nlp(text)
 
-        # Extract country entity using NER
         for ent in doc.ents:
             if ent.label_ == "GPE" or ent.label_ == "LOC":
-                country = ent.text
+                country = ent.text.capitalize()
+                country_list.append(country)
 
         # If nationality is mentioned, link it to the country using the nationality mapping
         nationality = self.link_nationality_to_country(text)
-        if nationality and not country:
+        if nationality:
             newtext = newtext.replace(nationality, "")
-            country = nationality
-            return country, newtext
+            country_list.append(nationality.capitalize())
 
-        newtext = newtext.replace(country, "")
-        country = country.capitalize()
-        return country, newtext
+        real_countries = []
+
+        for country in country_list:
+            newtext = newtext.replace(country, "")
+            country_in_ques = country.lower()
+            if (country_in_ques.count(" ")==0):
+                is_country = self.process_match_scores(country_in_ques, "Places")
+                if is_country:
+                    real_countries.append(country_in_ques.capitalize())
+            else:
+                real_countries.append(country_in_ques.capitalize())
+        newtext = self.remove_stopwords(newtext)
+        return real_countries, newtext
 
     def perform_ner(self, query):
         country, newtext = self.extract_country(query)
         cleaned_query = self.remove_stopwords(newtext)
         species = self.extract_species(cleaned_query)
-        year = ", ".join(self.extract_years(query))
-
-        # If year is still not identified, try to extract it from the remaining tokens
-        if not year:
-            year = ", ".join(
-                self.extract_years(
-                    " ".join(
-                        [
-                            token.text
-                            for token in self.nlp(query)
-                            if token.ent_type_ == ""
-                        ]
-                    )
-                )
-            )
+        year = self.extract_years(query)
 
         if species == "":
             species = None
@@ -125,7 +121,7 @@ class NER:
         if country == "":
             country = None
         results = {"species": species, "year": year, "country": country}
-
+        print(results)
         return results
 
     def rank_years(self, yearInQues):
@@ -141,4 +137,5 @@ class NER:
                 years.append(ranked)
             # if token.ent_type_ == "DATE" and token.text.isnumeric():
             #     years.append(token.text)
+        
         return years

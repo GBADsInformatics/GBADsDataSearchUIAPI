@@ -5,6 +5,9 @@ import numpy as np
 import ProcessSearch as PS
 from fastapi import FastAPI, APIRouter
 import os
+import re
+from collections import Counter
+import Autocomplete as AC
 
 nltk.download("stopwords")
 nltk.download("punkt")
@@ -16,34 +19,34 @@ nlp = spacy.load("en_core_web_lg")
 data = {
     "Names": ["john", "jay", "dan", "nathan", "bob"],
     "Colors": ["yellow", "red", "green"],
-    "Places": ["tokyo", "beijing", "washington", "mumbai"],
+    "Places": ["tokyo", "beijing", "washington", "mumbai", "ethiopia", "canada"],
     "Species": ["cows", "chickens", "poultry", "bovine", "horses"],
     "Years": ["2001", "1971", "96", "2000s", "93'"],
+    "General": ["the", "by", "here", "population", "random", "tile", "canda"],
+    "Mistakes": ["rusia"],
 }
-
-# test_queries = [
-#     "Chickens in Great Britain between 2011 and 2010",
-#     "Poultry in Canada in 2019",
-#     "Canadian Poultry population",
-#     "Ethiopia hens in 1997",
-#     "Chinese bovine in 96",
-#     "The population of cows in vietnam in the 2000s",
-#     "Horses in 75",
-#     "Random search that is nonsense"
-# ]
 
 # Words -> category
 categories = {word: key for key, words in data.items() for word in words}
 
 # Load the whole embedding matrix
 embeddings_index = {}
+
+# For autocomplete module
+words = []
+# with open('glove.6B.50d.txt', 'r') as f:
+#     file_name_data = f.read()
+#     file_name_data=file_name_data.lower()
+#     words = re.findall('w+',file_name_data)
+
 with open("glove.6B.50d.txt") as f:
     for line in f:
         values = line.split()
         word = values[0]
+        words.append(word)
         embed = np.array(values[1:], dtype=np.float32)
         embeddings_index[word] = embed
-print("Loaded %s word vectors." % len(embeddings_index))
+
 
 # Embeddings for available words
 data_embeddings = {
@@ -56,6 +59,19 @@ with open("nationality.csv", newline="", encoding="utf-8") as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
         nationality_mapping[row["nationality"].lower()] = row["en_short_name"]
+
+
+# For autocomplete object
+# This is our vocabulary
+V = set(words)
+
+# word_freq = {}
+# word_freq = Counter(words)
+
+# probs = {}
+# Total = sum(word_freq.values())    
+# for k in word_freq.keys():
+#     probs[k] = word_freq[k]/Total
 
 BASE_URL = os.environ.get("BASE_URL","")
 app = FastAPI(docs_url=BASE_URL + "/docs", openapi_url=BASE_URL + "/openapi.json")
@@ -71,7 +87,10 @@ def perform_a_search_query(query: str):
     ner = PS.NER(
         nlp, data, categories, embeddings_index, data_embeddings, nationality_mapping
     )
+    autocorrect = AC.Autocomplete(V)
     result = ner.perform_ner(query)
+    ac_return = autocorrect.check_sentence(query)
+    print(ac_return)
     return result
 
 # This router allows a custom path to be used for the API
