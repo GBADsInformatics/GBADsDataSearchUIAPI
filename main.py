@@ -5,8 +5,6 @@ import numpy as np
 import ProcessSearch as PS
 from fastapi import FastAPI, APIRouter
 import os
-import re
-from collections import Counter
 import Autocomplete as AC
 
 nltk.download("stopwords")
@@ -19,11 +17,12 @@ nlp = spacy.load("en_core_web_lg")
 data = {
     "Names": ["john", "jay", "dan", "nathan", "bob"],
     "Colors": ["yellow", "red", "green"],
-    "Places": ["tokyo", "beijing", "washington", "mumbai", "ethiopia", "canada"],
+    "Places": ["tokyo", "beijing", "washington", "mumbai", "ethiopia", "canada", "sub-saharan africa"],
     "Species": ["cows", "chickens", "poultry", "bovine", "horses"],
     "Years": ["2001", "1971", "96", "2000s", "93'"],
     "General": ["the", "by", "here", "population", "random", "tile", "canda"],
-    "Mistakes": ["rusia"],
+    "Regions": ["central asia", "latin america", "oceania", "caribbean"],
+    "Mistakes": ["rusia", "subsaharan", "saharan"],
 }
 
 # Words -> category
@@ -34,10 +33,6 @@ embeddings_index = {}
 
 # For autocomplete module
 words = []
-# with open('glove.6B.50d.txt', 'r') as f:
-#     file_name_data = f.read()
-#     file_name_data=file_name_data.lower()
-#     words = re.findall('w+',file_name_data)
 
 with open("glove.6B.50d.txt") as f:
     for line in f:
@@ -65,17 +60,10 @@ with open("nationality.csv", newline="", encoding="utf-8") as csvfile:
 # This is our vocabulary
 V = set(words)
 
-# word_freq = {}
-# word_freq = Counter(words)
-
-# probs = {}
-# Total = sum(word_freq.values())    
-# for k in word_freq.keys():
-#     probs[k] = word_freq[k]/Total
-
-BASE_URL = os.environ.get("BASE_URL","")
+BASE_URL = os.environ.get("BASE_URL", "")
 app = FastAPI(docs_url=BASE_URL + "/docs", openapi_url=BASE_URL + "/openapi.json")
 router = APIRouter(prefix=BASE_URL)
+
 
 @router.get("/ping", tags=['Ping'])
 def test_api_connection():
@@ -92,6 +80,7 @@ def perform_a_search_query(query: str):
     ac_return = autocorrect.check_sentence(query)
     print(ac_return)
     return result
+
 
 # This router allows a custom path to be used for the API
 app.include_router(router)

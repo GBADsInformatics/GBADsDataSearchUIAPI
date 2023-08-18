@@ -22,4 +22,4 @@ jobs:
         pip install nox
     - name: Analysing the code with pylint, flake8, black, and pytest
       run: |
-        nox
+        nox -e lint

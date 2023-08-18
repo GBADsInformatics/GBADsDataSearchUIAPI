@@ -1,6 +1,7 @@
-import pandas as pd
-import textdistance
+# import pandas as pd
+# import textdistance
 from autocorrect import Speller
+
 
 class Autocomplete:
     def __init__(self, word_list):
@@ -14,7 +15,8 @@ class Autocomplete:
         else:
             try:
                 return self.speller(input_word)
-            except:
+            except Exception as e:
+                print(e)
                 return "error"
             # sim_scores = [1 - textdistance.Jaccard(qval=2).similarity(word, input_word) for word in self.word_list]
             # suggestions = [word for _, word in sorted(zip(sim_scores, self.word_list), reverse=True)[:5]]

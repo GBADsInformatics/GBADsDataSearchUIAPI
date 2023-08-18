@@ -4,6 +4,7 @@ import nltk
 import numpy as np
 import sys
 import os
+import datetime
 
 # Add the project root directory to the Python path
 root_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -21,11 +22,12 @@ nlp = spacy.load("en_core_web_lg")
 data = {
     "Names": ["john", "jay", "dan", "nathan", "bob"],
     "Colors": ["yellow", "red", "green"],
-    "Places": ["tokyo", "beijing", "washington", "mumbai", "ethiopia", "canada"],
+    "Places": ["tokyo", "beijing", "washington", "mumbai", "ethiopia", "canada", "sub-saharan africa"],
     "Species": ["cows", "chickens", "poultry", "bovine", "horses"],
     "Years": ["2001", "1971", "96", "2000s", "93'"],
     "General": ["the", "by", "here", "population", "random", "tile", "canda"],
-    "Mistakes": ["rusia"],
+    "Regions": ["central asia", "latin america", "oceania", "caribbean"],
+    "Mistakes": ["rusia", "subsaharan", "saharan"],
 }
 
 # Words -> category
@@ -66,6 +68,10 @@ test_queries = [
     "Random search that is nonsense",
     "Poultry and Bovine population in Canada and Russia in 2011 and 2010",
     "Bovine populaton in Canda and Rusia in 2009 or 2011",
+    "camel population in Subsaharan Africa",
+    "latest data on goats in Canada",
+    "cattle in Africa this year",
+    ""
 ]
 
 
@@ -74,6 +80,10 @@ def test_ner():
         nlp, data, categories, embeddings_index, data_embeddings, nationality_mapping
     )
     # Expected results for each test query
+
+    current_year = datetime.datetime.now().year
+    current_year_str = str(current_year)
+
     expected_results = [
         {"species": ["Chickens"], "year": ["2011", "2010"], "country": ["Great britain"]},
         {"species": ["Poultry"], "year": ["2019"], "country": ["Canada"]},
@@ -85,7 +95,11 @@ def test_ner():
         {"species": [], "year": [], "country": []},
         # Multiple speciies, years, and countries
         {"species": ["Poultry", "Bovine"], "year": ["2011", "2010"], "country": ["Canada", "Russia"]},
-        {"species": ["Bovine"], "year": ["2009", "2011"], "country": []}
+        {"species": ["Bovine"], "year": ["2009", "2011"], "country": []},
+        {"species": ["Camel"], "year": [], "country": ["Subsaharan africa"]},
+        {"species": ["Goats"], "year": [current_year_str], "country": ["Canada"]},
+        {"species": ["Cattle"], "year": [current_year_str], "country": ["Africa"]},
+        {"species": [], "year": [], "country": []}
     ]
 
     for i in range(0, len(test_queries)):
