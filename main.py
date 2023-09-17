@@ -6,6 +6,7 @@ import ProcessSearch as PS
 from fastapi import FastAPI, APIRouter
 import os
 import Autocomplete as AC
+from fastapi.middleware.cors import CORSMiddleware
 
 nltk.download("stopwords")
 nltk.download("punkt")
