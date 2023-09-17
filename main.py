@@ -64,6 +64,14 @@ BASE_URL = os.environ.get("BASE_URL", "")
 app = FastAPI(docs_url=BASE_URL + "/docs", openapi_url=BASE_URL + "/openapi.json")
 router = APIRouter(prefix=BASE_URL)
 
+# Add CORS for webapp compatibility
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @router.get("/ping", tags=['Ping'])
 def test_api_connection():
