@@ -23,7 +23,7 @@ data = {
     "Names": ["john", "jay", "dan", "nathan", "bob"],
     "Colors": ["yellow", "red", "green"],
     "Places": ["tokyo", "beijing", "washington", "mumbai", "ethiopia", "canada", "sub-saharan africa"],
-    "Species": ["cows", "chickens", "poultry", "bovine", "horses"],
+    "Species": ["cows", "chickens", "poultry", "bovine", "horses", "buffalo"],
     "Years": ["2001", "1971", "96", "2000s", "93'"],
     "General": ["the", "by", "here", "population", "random", "tile", "canda"],
     "Regions": ["central asia", "latin america", "oceania", "caribbean"],
@@ -35,7 +35,7 @@ categories = {word: key for key, words in data.items() for word in words}
 
 # Load the whole embedding matrix
 embeddings_index = {}
-with open("glove.6B.50d.txt") as f:
+with open("glove.6B.200d.txt") as f:
     for line in f:
         values = line.split()
         word = values[0]
@@ -70,8 +70,21 @@ test_queries = [
     "Bovine populaton in Canda and Rusia in 2009 or 2011",
     "camel population in Subsaharan Africa",
     "latest data on goats in Canada",
-    "cattle in Africa this year",
-    ""
+    "cattle in South Africa this year",
+    "",
+    "Sheep and cattle in New Zealand in the 90s",
+    "Poultry and sheep in Australia in the 1980s",
+    "Cattle in Brazil between 1998 and 2002",
+    "Duck population in China in 2015",
+    "Swine in Germany in 2000",
+    "Elephants in Kenya in the 2010s",
+    "Buffalo in India in 85",
+    "Lion population in Africa",
+    "Birds and rabbits in the United States in 2018",
+    "Cat populaton in Italy and Spain in 2005 or 2006",
+    "Giraffe population in East Africa",
+    "latest data on horses in Mexico",
+    "dogs in Asia this year"
 ]
 
 
@@ -98,8 +111,21 @@ def test_ner():
         {"species": ["Bovine"], "year": ["2009", "2011"], "country": []},
         {"species": ["Camel"], "year": [], "country": ["Subsaharan africa"]},
         {"species": ["Goats"], "year": [current_year_str], "country": ["Canada"]},
-        {"species": ["Cattle"], "year": [current_year_str], "country": ["Africa"]},
-        {"species": [], "year": [], "country": []}
+        {"species": ["Cattle"], "year": [current_year_str], "country": ["South africa"]},
+        {"species": [], "year": [], "country": []},
+        {"species": ["Sheep", "Cattle"], "year": ["90s"], "country": ["New zealand"]},
+        {"species": ["Poultry", "Sheep"], "year": ["1980s"], "country": ["Australia"]},
+        {"species": ["Cattle"], "year": ["1998", "2002"], "country": ["Brazil"]},
+        {"species": ["Duck"], "year": ["2015"], "country": ["China"]},
+        {"species": ["Swine"], "year": ["2000"], "country": ["Germany"]},
+        {"species": ["Elephants"], "year": ["2010s"], "country": ["Kenya"]},
+        {"species": ["Buffalo"], "year": ["85"], "country": ["India"]},
+        {"species": ["Lion"], "year": [], "country": ["Africa"]},
+        {"species": ["Birds", "Rabbits"], "year": ["2018"], "country": ["United states"]},
+        {"species": ["Cat"], "year": ["2005", "2006"], "country": ["Italy", "Spain"]},
+        {"species": ["Giraffe"], "year": [], "country": ["East africa"]},
+        {"species": ["Horses"], "year": [current_year_str], "country": ["Mexico"]},
+        {"species": ["Dogs"], "year": [current_year_str], "country": ["Asia"]}
     ]
 
     for i in range(0, len(test_queries)):
