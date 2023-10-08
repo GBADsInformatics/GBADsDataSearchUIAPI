@@ -56,9 +56,13 @@ class NER:
                 dist /= len(self.data[category])
                 scores[category] = scores.get(category, 0) + dist
 
-            # print(original)
-            # print(scores)
+            print("LOOKING FOR: " + category_to_check)
+            print(original)
+            print(scores)
             highest_key = max(scores, key=scores.get)
+            if (category_to_check=="Places"):
+                if (highest_key==category_to_check or highest_key=="Continents" or highest_key=="Regions"):
+                    return original.capitalize()
             if highest_key == category_to_check:
                 return original.capitalize()
             return None
@@ -74,11 +78,12 @@ class NER:
 
         doc = self.nlp(text)
         for token in doc:
-            if token.pos_ == "NOUN" or token.pos_ == "PROPN":
-                species = token.text.lower()
-                species = self.process_match_scores(species, "Species")
-                if species:
-                    species_list.append(species.capitalize())
+            print("TTOKEN: " + token.text)
+            print("POS: " + str(token.pos_))
+            species = token.text.lower()
+            species = self.process_match_scores(species, "Species")
+            if species:
+                species_list.append(species.capitalize())
 
         return species_list
 
@@ -113,9 +118,11 @@ class NER:
         return real_countries, newtext
 
     def perform_ner(self, query):
+        print("THE QUERY: " + query)
         country, newtext = self.extract_country(query)
-        cleaned_query = self.remove_stopwords(newtext)
-        species = self.extract_species(cleaned_query)
+        # cleaned_query = self.remove_stopwords(newtext)
+        # print("CLEANED: " + cleaned_query)
+        species = self.extract_species(query)
         year = self.extract_years(query)
 
         if species == "":
@@ -132,13 +139,23 @@ class NER:
         yearInQues = yearInQues.lower()
         yearInQues = self.process_match_scores(yearInQues, "Years")
         return yearInQues
+    
+    def is_convertible_to_number(self, s):
+        try:
+            float(s)
+            return True
+        except ValueError:
+            return False
 
     def extract_years(self, text):
         years = []
         for token in self.nlp(text):
             ranked = self.rank_years(token.text)
-            if ranked is not None:
-                years.append(ranked)
+            # Checks if the string can be converted into a number
+            the_text = str(token.text)
+            check_convert = self.is_convertible_to_number(the_text)
+            if (ranked is not None) or (check_convert):
+                years.append(the_text)
 
         check_curr_year = self.find_curr_year(text)
 

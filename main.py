@@ -17,9 +17,9 @@ nlp = spacy.load("en_core_web_lg")
 # Category -> words
 data = {
     "Names": ["john", "jay", "dan", "nathan", "bob"],
-    "Colors": ["yellow", "red", "green"],
-    "Places": ["tokyo", "beijing", "washington", "mumbai", "ethiopia", "canada", "sub-saharan africa"],
-    "Species": ["cows", "chickens", "poultry", "bovine", "horses"],
+    "Continents": ["asia", "north america", "south america", "europe", "oceania", "antarctica", "africa"],
+    "Places": ["tokyo", "beijing", "washington", "mumbai", "ethiopia", "canada", "sub-saharan africa", "madagascar"],
+    "Species": ["cows", "chickens", "poultry", "bovine", "horses", "tigers", "puffins", "koalas", "lion", "hawks"],
     "Years": ["2001", "1971", "96", "2000s", "93'"],
     "General": ["the", "by", "here", "population", "random", "tile", "canda"],
     "Regions": ["central asia", "latin america", "oceania", "caribbean"],
