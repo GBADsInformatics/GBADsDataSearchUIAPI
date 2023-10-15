@@ -60,8 +60,8 @@ class NER:
             print(original)
             print(scores)
             highest_key = max(scores, key=scores.get)
-            if (category_to_check=="Places"):
-                if (highest_key==category_to_check or highest_key=="Continents" or highest_key=="Regions"):
+            if (category_to_check == "Places"):
+                if (highest_key == category_to_check or highest_key == "Continents" or highest_key == "Regions"):
                     return original.capitalize()
             if highest_key == category_to_check:
                 return original.capitalize()
@@ -131,7 +131,7 @@ class NER:
             year = None
         if country == "":
             country = None
-        results = {"species": species, "year": year, "country": country}
+        results = {"species": species, "years": year, "countries": country}
         print(results)
         return results
 
@@ -139,7 +139,7 @@ class NER:
         yearInQues = yearInQues.lower()
         yearInQues = self.process_match_scores(yearInQues, "Years")
         return yearInQues
-    
+
     def is_convertible_to_number(self, s):
         try:
             float(s)
