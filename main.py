@@ -75,7 +75,7 @@ app.add_middleware(
 )
 
 
-@router.get("/ping", tags=['Ping'])
+@router.get("/", tags=['Ping'])
 def test_api_connection():
     return "pong"
 
