@@ -56,9 +56,9 @@ class NER:
                 dist /= len(self.data[category])
                 scores[category] = scores.get(category, 0) + dist
 
-            print("LOOKING FOR: " + category_to_check)
-            print(original)
-            print(scores)
+            # print("LOOKING FOR: " + category_to_check)
+            # print(original)
+            # print(scores)
             highest_key = max(scores, key=scores.get)
             if (category_to_check == "Places"):
                 if (highest_key == category_to_check or highest_key == "Continents" or highest_key == "Regions"):
@@ -68,7 +68,8 @@ class NER:
             return None
         except Exception as e:
             # Index error has occurred. This is likely due to the word not exsisting.
-            print(e)
+            # print(e)
+            print(f"ERROR: {e}")
             return None
 
     #     Query: Chinese bovine in 96
@@ -78,8 +79,8 @@ class NER:
 
         doc = self.nlp(text)
         for token in doc:
-            print("TTOKEN: " + token.text)
-            print("POS: " + str(token.pos_))
+            # print("TTOKEN: " + token.text)
+            # print("POS: " + str(token.pos_))
             species = token.text.lower()
             species = self.process_match_scores(species, "Species")
             if species:
@@ -118,7 +119,7 @@ class NER:
         return real_countries, newtext
 
     def perform_ner(self, query):
-        print("THE QUERY: " + query)
+        # print("THE QUERY: " + query)
         country, newtext = self.extract_country(query)
         # cleaned_query = self.remove_stopwords(newtext)
         # print("CLEANED: " + cleaned_query)
@@ -132,7 +133,7 @@ class NER:
         if country == "":
             country = None
         results = {"species": species, "years": year, "countries": country}
-        print(results)
+        # print(results)
         return results
 
     def rank_years(self, yearInQues):
@@ -175,7 +176,8 @@ class NER:
                     washed_years.append(year)
             return washed_years
         except Exception as e:
-            print("extract_years: " + str(e))
+            # print("extract_years: " + str(e))
+            print(f"ERROR: {e}")
             return years
 
     # Checks for specific keywords within a sentence to determine if asked about the current year

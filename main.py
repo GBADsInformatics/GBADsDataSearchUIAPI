@@ -3,10 +3,11 @@ import csv
 import nltk
 import numpy as np
 import ProcessSearch as PS
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Request
 import os
-import Autocomplete as AC
+# import Autocomplete as AC
 from fastapi.middleware.cors import CORSMiddleware
+from datetime import datetime
 
 nltk.download("stopwords")
 nltk.download("punkt")
@@ -81,14 +82,18 @@ def test_api_connection():
 
 
 @router.get("/search", tags=['Search'])
-def perform_a_search_query(query: str):
+def perform_a_search_query(query: str, request: Request):
     ner = PS.NER(
         nlp, data, categories, embeddings_index, data_embeddings, nationality_mapping
     )
-    autocorrect = AC.Autocomplete(V)
+    # autocorrect = AC.Autocomplete(V)
     result = ner.perform_ner(query)
-    ac_return = autocorrect.check_sentence(query)
-    print(ac_return)
+    # ac_return = autocorrect.check_sentence(query)
+    # print(ac_return)
+    now = datetime.now()
+    dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+    client_host = request.client.host
+    print(f"IP: {client_host} | Query: {query} | DateTime: {dt_string}")
     return result
 
 
