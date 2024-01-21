@@ -2,13 +2,9 @@ import spacy
 import csv
 import nltk
 import numpy as np
-import sys
-import os
 import datetime
-
-# Add the project root directory to the Python path
-root_directory = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.append(root_directory)
+import requests
+import time
 
 # Now you can import the module directly
 import ProcessSearch as PS
@@ -137,7 +133,7 @@ test_queries = [
 ]
 
 
-def test_ner():
+def test_ner_accuracy():
     ner = PS.NER(
         nlp, data, categories, embeddings_index, data_embeddings, nationality_mapping
     )
@@ -227,12 +223,44 @@ def test_ner():
 
     for i in range(0, len(test_queries)):
         result = ner.perform_ner(test_queries[i])
-        print(result)
-        print(expected_results[i])
-        print(result == expected_results[i])
+        # print(result)
+        # print(expected_results[i])
+        # print(result == expected_results[i])
         assert result == expected_results[i]
 
     # for query, expected_result in zip(test_queries, expected_results):
     #     result = ner.perform_ner(query)
     #     print(result)
     #     assert result == expected_result
+
+
+def make_ner_api_call(query):
+    url = "https://www.gbadske.org/search/api/search"
+    params = {'query': query}
+
+    try:
+        start_time = time.time()  # Record the start time before making the API call
+        response = requests.get(url, params=params)
+        end_time = time.time()  # Record the end time after receiving the API response
+        # Check if the request was successful (status code 200)
+        if response.status_code == 200:
+            # Calculate the response time
+            response_time = end_time - start_time
+            return response_time
+        else:
+            return -1
+    except requests.RequestException as e:
+        print(f"Query: {query}, Error making API request:", e)
+
+
+def test_ner_performance():
+    api_errors = 0
+    total_response_time = 0
+    for query in test_queries:
+        result = make_ner_api_call(query)
+        if result == -1:
+            api_errors += 1
+        else:
+            total_response_time += result
+    average_response_time = total_response_time / (len(test_queries) - api_errors)
+    print(average_response_time)
