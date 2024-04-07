@@ -1,7 +1,11 @@
 import datetime
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-
+# import Autocomplete
+import nltk
+import requests
+nltk.download("stopwords")
+nltk.download("punkt")
 
 class NER:
     def __init__(
@@ -19,6 +23,7 @@ class NER:
         self.embeddings_index = embeddings_index
         self.data_embeddings = data_embeddings
         self.nationality_mapping = nationality_mapping
+        # self.auto_complete = Autocomplete.Autocomplete()
 
     # Function to link nationality to country
     def link_nationality_to_country(self, text):
@@ -34,7 +39,7 @@ class NER:
         all_stopwords = stopwords.words("english")
 
         # Custom stopwords
-        custom_stop_words = ["The", "population"]
+        custom_stop_words = ["The", "population", "the"]
 
         for word in custom_stop_words:
             all_stopwords.append(word)
@@ -59,17 +64,20 @@ class NER:
             # print("LOOKING FOR: " + category_to_check)
             # print(original)
             # print(scores)
+            print(check_meaning.upper())
+            print(scores)
             highest_key = max(scores, key=scores.get)
+            print(highest_key)
             if (category_to_check == "Places"):
                 if (highest_key == category_to_check or highest_key == "Continents" or highest_key == "Regions"):
-                    return original.capitalize()
+                    return original.title()
             if highest_key == category_to_check:
-                return original.capitalize()
+                return original.title()
             return None
         except Exception as e:
             # Index error has occurred. This is likely due to the word not exsisting.
             # print(e)
-            print(f"ERROR: {e}")
+            print(f"An error has occurred in process_match_scores(). ERROR: {e}")
             return None
 
     #     Query: Chinese bovine in 96
@@ -84,7 +92,7 @@ class NER:
             species = token.text.lower()
             species = self.process_match_scores(species, "Species")
             if species:
-                species_list.append(species.capitalize())
+                species_list.append(species.title())
 
         return species_list
 
@@ -95,14 +103,14 @@ class NER:
 
         for ent in doc.ents:
             if ent.label_ == "GPE" or ent.label_ == "LOC":
-                country = ent.text.capitalize()
+                country = ent.text.title()
                 country_list.append(country)
 
         # If nationality is mentioned, link it to the country using the nationality mapping
         nationality = self.link_nationality_to_country(text)
         if nationality:
             newtext = newtext.replace(nationality, "")
-            country_list.append(nationality.capitalize())
+            country_list.append(nationality.title())
 
         real_countries = []
 
@@ -112,19 +120,77 @@ class NER:
             if (country_in_ques.count(" ") == 0):
                 is_country = self.process_match_scores(country_in_ques, "Places")
                 if is_country:
-                    real_countries.append(country_in_ques.capitalize())
+                    real_countries.append(country_in_ques.title())
             else:
-                real_countries.append(country_in_ques.capitalize())
+                real_countries.append(country_in_ques.title())
         newtext = self.remove_stopwords(newtext)
         return real_countries, newtext
+    
+
+    # def derive_label(self, text):
+    #     print("RETURNED FROM DERIVE LABEL")
+    #     is_country = self.process_match_scores(text, "Places")
+    #     is_species = self.process_match_scores(text, "Species")
+    #     print(is_country)
+    #     print(is_species)
+    #     if is_country:
+    #         return "Place"
+    #     if is_species:
+    #         return "Species"
+    
+    def ned_with_dbpedia_spotlight_verifier(self, text):
+        url = "http://api.dbpedia-spotlight.org/en/annotate"
+        params = {
+            "text": text,
+            "confidence": 0.5,
+            "support": 20
+        }
+        headers = {
+            "Accept": "application/json"
+        }
+        response = requests.get(url, params=params, headers=headers)
+        try:
+            response.raise_for_status()
+            annotations = response.json()
+            return annotations
+        except requests.exceptions.HTTPError as err:
+            print(f"HTTP error occurred: {err}")
+            print(f"Response content: {response.content}")
+            return None
+        except requests.exceptions.JSONDecodeError as err:
+            print(f"JSON decoding error occurred: {err}")
+            print(f"Response content: {response.content}")
+            return None
 
     def perform_ner(self, query):
-        # print("THE QUERY: " + query)
         country, newtext = self.extract_country(query)
         # cleaned_query = self.remove_stopwords(newtext)
         # print("CLEANED: " + cleaned_query)
         species = self.extract_species(query)
         year = self.extract_years(query)
+
+        # Add verification step after we've derived our categories
+        try:
+            verified_list_results = self.ned_with_dbpedia_spotlight_verifier(query)
+            print("RETURNED FROM TEST FUNCTION")
+            verified_species = []
+            surface_forms = []
+            if verified_list_results:
+                surface_forms = [resource['@surfaceForm'] for resource in verified_list_results['Resources']]
+                print(surface_forms)
+                # for any_ent in surface_forms:
+                #     check_label = self.derive_label(any_ent)
+                #     if (check_label == "Species"):
+                #         verified_species.append(any_ent)
+            # print(verified_species)
+            # if len(verified_species) > 0:
+            for spec_ent in surface_forms:
+                for val in species:
+                    if (val in spec_ent):
+                        species[species.index(val)] = spec_ent
+        except KeyError as e:
+            print(f"Verification Step failed. Error: {e}")
+
 
         if species == "":
             species = None
@@ -177,7 +243,7 @@ class NER:
             return washed_years
         except Exception as e:
             # print("extract_years: " + str(e))
-            print(f"ERROR: {e}")
+            print(f"An error has occurred in extract_years(). ERROR: {e}")
             return years
 
     # Checks for specific keywords within a sentence to determine if asked about the current year
