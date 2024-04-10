@@ -5,7 +5,12 @@
 `python3.9 -m venv env`
 
 ### To activate, use the following command:
+
+Linux:
 `source env/bin/activate`
+
+Windows:
+`cd /d env\Scripts && activate && cd ../..`
 
 ### To deactivate, use the following command:
 `deactivate`
