@@ -3,7 +3,7 @@ import csv
 import nltk
 import numpy as np
 import ProcessSearch as PS
-from fastapi import FastAPI, APIRouter, Request
+from fastapi import FastAPI, APIRouter
 import os
 # import Autocomplete as AC
 from fastapi.middleware.cors import CORSMiddleware
@@ -107,7 +107,7 @@ def test_api_connection():
 
 
 @router.get("/search", tags=['Search'])
-def perform_a_search_query(query: str, request: Request):
+def perform_a_search_query(query: str):
     ner = PS.NER(
         nlp, data, categories, embeddings_index, data_embeddings, nationality_mapping
     )
@@ -115,8 +115,7 @@ def perform_a_search_query(query: str, request: Request):
     result = ner.perform_ner(query)
     # ac_return = autocorrect.check_sentence(query)
     # print(ac_return)
-    client_host = request.client.host
-    log_message(f"IP: {client_host} | Query: {query}")
+    log_message(f"QUERY SENT: {query}")
     log_message(f"API RESPONSE: {result}")
     return result
 
