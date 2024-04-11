@@ -7,10 +7,35 @@ from fastapi import FastAPI, APIRouter, Request
 import os
 # import Autocomplete as AC
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime
+import logging
+
+# Create a 'logs' directory if it doesn't exist
+if not os.path.exists('logs'):
+    os.makedirs('logs')
+
+# Set up logging
+log_filename = "logs/tail-api-log.txt"
+logging.basicConfig(filename=log_filename, level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 nltk.download("stopwords")
 nltk.download("punkt")
+
+
+# Used to log incoming requests and their matching results
+def log_message(message):
+    logging.info(message)
+
+
+def read_log_file():
+    try:
+        with open("logs/tail-api-log.txt", 'r', encoding='utf-8') as file:
+            return file.read()
+    except FileNotFoundError:
+        return "File not found."
+    except Exception as e:
+        return f"An error occurred: {str(e)}"
+
 
 # Load the spaCy English language model
 nlp = spacy.load("en_core_web_lg")
@@ -36,7 +61,7 @@ embeddings_index = {}
 # For autocomplete module
 words = []
 
-with open("glove.6B.50d.txt") as f:
+with open("glove.6B.50d.txt", encoding='utf-8') as f:
     for line in f:
         values = line.split()
         word = values[0]
@@ -90,11 +115,15 @@ def perform_a_search_query(query: str, request: Request):
     result = ner.perform_ner(query)
     # ac_return = autocorrect.check_sentence(query)
     # print(ac_return)
-    now = datetime.now()
-    dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
     client_host = request.client.host
-    print(f"IP: {client_host} | Query: {query} | DateTime: {dt_string}")
+    log_message(f"IP: {client_host} | Query: {query}")
+    log_message(f"API RESPONSE: {result}")
     return result
+
+
+@router.get("/logs", tags=['Logs'])
+def get_logs():
+    return read_log_file()
 
 
 # This router allows a custom path to be used for the API
