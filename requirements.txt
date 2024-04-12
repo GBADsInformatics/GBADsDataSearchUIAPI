@@ -65,3 +65,4 @@ urllib3==2.0.4
 uvicorn==0.22.0
 wasabi==1.1.2
 wrapt==1.15.0
+pytz==2023.3

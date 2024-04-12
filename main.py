@@ -8,6 +8,9 @@ import os
 # import Autocomplete as AC
 from fastapi.middleware.cors import CORSMiddleware
 import logging
+from datetime import datetime
+import pytz
+
 
 # Create a 'logs' directory if it doesn't exist
 if not os.path.exists('logs'):
@@ -16,15 +19,27 @@ if not os.path.exists('logs'):
 # Set up logging
 log_filename = "logs/tail-api-log.txt"
 logging.basicConfig(filename=log_filename, level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
+                    format='%(levelname)s - %(message)s')
 
 nltk.download("stopwords")
 nltk.download("punkt")
 
 
+# Set the timezone to Eastern Standard Time (EST)
+est_timezone = pytz.timezone('America/Toronto')
+
+
 # Used to log incoming requests and their matching results
 def log_message(message):
-    logging.info(message)
+    # Set the timezone to Eastern Standard Time (EST) for Toronto
+    toronto_timezone = pytz.timezone('America/Toronto')
+
+    # Get the current time in Toronto
+    toronto_time = datetime.now(toronto_timezone)
+
+    # Format the time in dd-mm-yy HH-MM format
+    formatted_time = toronto_time.strftime('%d-%m-%Y %H:%M')
+    logging.info(formatted_time + " - " + message)
 
 
 def read_log_file():
