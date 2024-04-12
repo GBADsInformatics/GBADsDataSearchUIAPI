@@ -117,6 +117,8 @@ def perform_a_search_query(query: str):
     # print(ac_return)
     log_message(f"QUERY SENT: {query}")
     log_message(f"API RESPONSE: {result}")
+    print(f"QUERY SENT: {query}")
+    print(f"API RESPONSE: {result}")
     return result
 
 
